@@ -61,6 +61,22 @@ Documentación interactiva (sirve de demo): http://127.0.0.1:8000/docs
 IDs de ejemplo: pacientes `P0001`…`P0500`, médicos `D001`…`D050`.
 Toda respuesta incluye el header `X-Response-Time-ms`.
 
+## Guía rápida para el equipo (levantar la API en tu máquina)
+
+1. Instala [Python 3.10+](https://www.python.org/downloads/) marcando
+   **"Add Python to PATH"** durante la instalación.
+2. Descarga el proyecto: botón verde **Code → Download ZIP** y descomprime
+   (o `git clone https://github.com/Luisguslg/vitalcore.git`).
+3. Crea un archivo llamado `.env` dentro de la carpeta del proyecto con las
+   credenciales de conexión (pídelas por privado; usa `.env.example` como
+   plantilla). **Nunca subas el `.env` al repositorio.**
+4. Doble clic en **`INICIAR_API.bat`** — la primera vez instala todo solo
+   (1–2 min). Cuando diga que está corriendo, abre
+   http://127.0.0.1:8000/docs para probar los endpoints.
+5. La base de datos ya está poblada en Atlas: no hay que cargar nada.
+   El dashboard debe consumir la API en `http://127.0.0.1:8000`
+   (CORS ya está habilitado para cualquier origen).
+
 ## Estructura
 
 ```
