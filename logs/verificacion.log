@@ -1,0 +1,23 @@
+=== Conteos (mínimos del enunciado) ===
+  patients: 500  [OK]
+  doctors: 50  [OK]
+  vital_readings: 200,000  [OK]
+  consultations: 1,000  [OK]
+  alerts: 6,336  [OK]
+  referrals: 245  [OK]
+
+=== Coherencia temporal ===
+  lecturas desde 2026-01-01 00:01:54 hasta 2026-06-30 23:58:42
+
+=== Patrones de acceso (latencia en frío) ===
+  P1 historial (consultas+alertas de P0001): 118.7 ms
+  P2 lecturas heart_rate de P0001 en marzo: 60.4 ms
+  P3 pacientes activos de D001 por riesgo: 120.5 ms
+  P4 alertas activas: 63.8 ms
+  P5 red de referidos ($graphLookup): 60.0 ms
+
+=== explain() — evidencia para el documento técnico ===
+  P3 patients: etapa=IXSCAN indice=ix_medico_estado_riesgo docsExaminados=60 devueltos=60 tiempo=0ms
+  (spot-check) lecturas de glucosa >250 de P0001: 0
+
+Verificación completa.
