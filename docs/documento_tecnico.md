@@ -68,6 +68,17 @@ Preferimos que la plataforma responda «reintenta» a que un médico decida sobr
 información inconsistente. Atlas M0 despliega un replica set de 3 nodos con
 estas garantías por defecto (`w: majority` en el connection string).
 
+**Relación con los conceptos de bases de datos distribuidas del curso:** el
+replica set materializa la **replicación** con sus ventajas clásicas (mayor
+disponibilidad y tolerancia a fallas: si cae un nodo, se elige otro primario
+y el servicio continúa), mientras que el escalado horizontal de MongoDB
+(*sharding*) es una **fragmentación horizontal** administrada por el motor:
+la *shard key* cumple el rol del criterio de fragmentación y el enrutador
+(`mongos`) aporta la **transparencia** — el cliente consulta sin saber en qué
+nodo reside cada fragmento. A la escala actual del proyecto el sharding no es
+necesario, pero el modelo de datos ya es compatible: `meta.patientId` sería
+la shard key natural de la telemetría.
+
 ## 2. Diseño del esquema
 
 ### 2.1 Colecciones
@@ -90,6 +101,11 @@ estas garantías por defecto (`w: majority` en el connection string).
   reference*: el patrón P3 («pacientes activos de un médico con su última
   lectura») se responde con **un único `find` indexado** en vez de una
   agregación sobre 200.000 lecturas. El snapshot se actualiza en la ingesta.
+- Fundamento transaccional: en MongoDB el **documento es la unidad de
+  atomicidad**. Embeber lo que se actualiza y se lee junto preserva la
+  consistencia sin coordinar escrituras entre nodos ni pagar protocolos de
+  confirmación distribuida (el *two-phase commit* que encarece las
+  transacciones en bases de datos distribuidas relacionales).
 
 **Referenciado** (crece sin límite o se comparte):
 - `vital_readings`, `consultations`, `alerts`, `referrals` referencian
