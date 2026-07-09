@@ -90,7 +90,8 @@ la sugerencia cumplía los requisitos antes de incorporarla.
   6.336 alertas y 245 referidos. `explain()` de la consulta del médico:
   `IXSCAN` sobre `ix_medico_estado_riesgo`, docsExamined = nReturned = 60,
   0 ms de ejecución en servidor; los 5 patrones en 60–120 ms extremo a
-  extremo contra Atlas M0.
+  extremo contra Atlas M0. La prueba funcional completa de los endpoints se
+  documenta en la Entrada 5.
 
 ## Entrada 4 — Diagnóstico de conectividad al cluster
 
@@ -112,6 +113,29 @@ la sugerencia cumplía los requisitos antes de incorporarla.
 - **Validación:** la carga y la verificación completas se ejecutaron con
   éxito inmediatamente después de desconectar el túnel, confirmando el
   diagnóstico.
+
+## Entrada 5 — Ingesta en vivo y medición formal de KPIs
+
+- **Fecha:** 2026-07-09 · **Herramienta:** Claude Code (Fable 5)
+- **Prompt (resumen):** «El patrón de alertas solo se ejercía dentro del seed;
+  necesito exponerlo por la API para poder demostrarlo con datos nuevos, y un
+  procedimiento reproducible que mida las latencias de los 5 patrones con
+  parámetros variados — no una sola corrida con el mismo paciente, que
+  estaría sesgada por el caché.»
+- **Respuesta:** `POST /readings` (evalúa el umbral del paciente en la
+  ingesta: lectura, alerta y actualización del snapshot embebido en la misma
+  operación) y `scripts/measure_api.py`, que ejercita cada patrón 30 veces
+  con pacientes, médicos, sensores y rangos de fechas aleatorios.
+- **Decisión: ACEPTADO CON REVISIÓN.** Se verificó que el endpoint usara el
+  umbral individual del paciente (no un valor global) y que la medición
+  variara los parámetros en cada iteración.
+- **Validación (2026-07-09):** ejecución completa contra la base poblada
+  (`logs/tabla_latencias.md`): promedios extremo a extremo entre 131 y 253 ms
+  (62–179 ms del lado del servidor), con P2 filtrando las 200.000 lecturas en
+  ~62 ms vía el índice de la colección time series. Prueba funcional de la
+  alerta: glucosa de 320 mg/dL insertada por `POST /readings` generó su
+  alerta y quedó visible en `GET /alerts/active` en 274 ms. Los resultados se
+  incorporaron a la sección 5 del documento técnico.
 
 ---
 

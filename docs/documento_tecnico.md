@@ -209,7 +209,32 @@ produce con `scripts/measure_api.py` (ejecutable vía `PROBAR_API.bat`), que
 ejercita cada patrón 30 veces con parámetros aleatorios realistas y genera
 `logs/tabla_latencias.md`.
 
-`[COMPLETAR: pegar aquí la tabla de logs/tabla_latencias.md tras la medición]`
+**Resultados** (30 iteraciones por consulta con parámetros aleatorios,
+medidos el 2026-07-09; reporte completo en `logs/tabla_latencias.md`):
+
+| Patrón / Consulta | Promedio (ms) | p95 (ms) | Mín (ms) | Máx (ms) |
+|---|---|---|---|---|
+| P1 `GET /patients/{id}/history` | 253,2 | 263,7 | 241,0 | 270,8 |
+| P2 `GET /patients/{id}/readings` (sensor + rango) | 131,2 | 139,5 | 124,0 | 146,5 |
+| P3 `GET /doctors/{id}/patients` | 195,1 | 202,1 | 186,4 | 210,3 |
+| P4 `GET /alerts/active` | 139,9 | 145,8 | 128,8 | 146,0 |
+| P5 `GET /patients/{id}/referrals` (`$graphLookup`) | 139,5 | 187,5 | 123,0 | 216,0 |
+
+Del lado del servidor (colección `metrics`, sin el overhead HTTP del cliente
+ni la persistencia de la propia métrica), los promedios bajan a: P1 179 ms,
+P2 62 ms, P3 122 ms, P4 66 ms, P5 68 ms. La lectura clave: **P2 filtra
+200.000 lecturas por paciente, sensor y rango de fechas en ~62 ms** gracias
+al índice compuesto sobre la colección time series, y P1 es el más costoso
+porque agrega dos consultas secuenciales (consultas médicas + alertas) — un
+candidato natural a paralelizarse si el patrón se volviera crítico. La
+latencia total está dominada por el viaje de red hasta Atlas (región
+US East); en un despliegue co-localizado con la aplicación estos tiempos
+se reducirían proporcionalmente.
+
+**Alerta por umbral de extremo a extremo:** una lectura crítica insertada vía
+`POST /readings` (glucosa 320 mg/dL) generó su alerta y quedó visible en
+`GET /alerts/active` en 274 ms, incluyendo la actualización atómica del
+snapshot del paciente.
 
 ## 6. Distribución de responsabilidades
 
