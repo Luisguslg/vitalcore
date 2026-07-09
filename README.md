@@ -56,7 +56,11 @@ Documentación interactiva (sirve de demo): http://127.0.0.1:8000/docs
 | Pacientes activos de un médico por riesgo | `GET /doctors/{id}/patients` |
 | Alertas activas (eventos críticos sin resolver) | `GET /alerts/active` |
 | Red de referidos (`$graphLookup`) | `GET /patients/{id}/referrals` |
+| Ingesta de lectura con alerta por umbral en vivo | `POST /readings` |
 | KPI: latencia promedio y p95 por consulta | `GET /metrics` |
+
+Para medir y reportar los KPIs de latencia: `PROBAR_API.bat` (ejercita cada
+patrón 30 veces y genera `logs/tabla_latencias.md`).
 
 IDs de ejemplo: pacientes `P0001`…`P0500`, médicos `D001`…`D050`.
 Toda respuesta incluye el header `X-Response-Time-ms`.

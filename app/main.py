@@ -11,6 +11,7 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 
 from app.db import db
 
@@ -146,6 +147,73 @@ def referral_network(patient_id: str):
     doctors = {d["_id"]: {"name": d["name"], "specialty": d["specialty"]}
                for d in db.doctors.find({"_id": {"$in": list(ids)}})}
     return {"patientId": patient_id, "network": network, "doctors": doctors}
+
+
+# ── Patrón 4 (escritura): ingesta de una lectura con evaluación de umbral ────
+# La lectura y su alerta (si supera el umbral definido por el médico para ese
+# paciente) se insertan en la misma operación de ingesta; el snapshot embebido
+# del paciente se actualiza de forma atómica.
+SENSOR_UNITS = {
+    "heart_rate": "bpm", "glucose": "mg/dL", "spo2": "%",
+    "blood_pressure_systolic": "mmHg", "body_temperature": "°C",
+}
+
+
+class NewReading(BaseModel):
+    patientId: str
+    sensorType: str
+    value: float = Field(..., description="valor medido por el sensor")
+
+
+@app.post("/readings", tags=["patrones de acceso"], status_code=201)
+def create_reading(reading: NewReading):
+    if reading.sensorType not in SENSOR_UNITS:
+        raise HTTPException(422, f"sensorType debe ser uno de {list(SENSOR_UNITS)}")
+    patient = db.patients.find_one({"_id": reading.patientId})
+    if not patient:
+        raise HTTPException(404, "Paciente no encontrado")
+
+    now = datetime.utcnow()
+    threshold = patient.get("thresholds", {}).get(reading.sensorType, {})
+    breached = (threshold.get("max") is not None and reading.value > threshold["max"]) or \
+               (threshold.get("min") is not None and reading.value < threshold["min"])
+
+    unit = SENSOR_UNITS[reading.sensorType]
+    db.vital_readings.insert_one({
+        "timestamp": now,
+        "meta": {"patientId": reading.patientId, "sensorType": reading.sensorType},
+        "value": reading.value,
+        "unit": unit,
+        "isCritical": breached,
+    })
+
+    alert_id = None
+    if breached:
+        result = db.alerts.insert_one({
+            "patientId": reading.patientId,
+            "doctorId": patient["doctorId"],
+            "sensorType": reading.sensorType,
+            "value": reading.value,
+            "unit": unit,
+            "threshold": threshold,
+            "severity": "high",
+            "status": "active",
+            "createdAt": now,
+            "resolvedAt": None,
+        })
+        alert_id = str(result.inserted_id)
+
+    update = {"lastReading": {
+        "sensorType": reading.sensorType, "value": reading.value,
+        "unit": unit, "timestamp": now, "isCritical": breached,
+    }}
+    if breached and patient.get("riskLevel", 0) < 2:
+        update["riskLevel"] = 2
+        update["riskLabel"] = "alto"
+    db.patients.update_one({"_id": reading.patientId}, {"$set": update})
+
+    return {"inserted": True, "isCritical": breached, "alertId": alert_id,
+            "threshold": threshold}
 
 
 # ── KPI: tiempo promedio de respuesta por consulta ───────────────────────────

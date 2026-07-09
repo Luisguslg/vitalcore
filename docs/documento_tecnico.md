@@ -153,6 +153,14 @@ Script `scripts/seed.py` (Python + Faker, semilla fija → reproducible):
   SpO2 82–100%, etc.); los pacientes crónicos generan más lecturas y sus
   anomalías corresponden a su condición (diabético → glucosa alta, EPOC → SpO2
   baja).
+- **Calibración con referencias clínicas:** los rangos normales y umbrales de
+  alerta se calibraron con criterios clínicos estándar en lugar de valores
+  arbitrarios — glucemia según los criterios diagnósticos de la American
+  Diabetes Association (normal <140 mg/dL posprandial, hipoglucemia <70,
+  crisis hiperglucémica >250), presión arterial según las categorías
+  AHA/ACC (normal <120 mmHg sistólica, crisis hipertensiva >180), SpO2 <90%
+  como hipoxemia clínicamente significativa, y frecuencia cardíaca fuera de
+  50–145 lpm como umbral de alerta configurable por el médico.
 - **Coherencia temporal:** lecturas y consultas dentro de los 6 meses simulados
   (ene–jun 2026) y posteriores a la fecha de inscripción del paciente.
 - **Alertas derivadas, no aleatorias:** solo cuando una lectura supera el
@@ -166,20 +174,42 @@ referidos encadenados.
 
 ## 4. Arquitectura del sistema
 
-```
-[seed.py: Faker] ──insert_many──▶ [MongoDB Atlas M0 (replica set, CP)]
-                                        ▲
-[Dashboard web] ──fetch──▶ [FastAPI]────┘  (middleware → colección metrics)
+```mermaid
+flowchart LR
+    subgraph Ingesta
+        S["seed.py<br/>(Faker, coherencia médica)"]
+    end
+    subgraph Nube["MongoDB Atlas M0 — replica set 3 nodos (CP)"]
+        DB[("vitalcore<br/>7 colecciones<br/>+ índices por patrón")]
+    end
+    subgraph Consulta
+        API["FastAPI<br/>5 patrones + POST /readings"]
+        MID["middleware de latencia<br/>→ colección metrics"]
+        DASH["Dashboard web<br/>(vistas paciente / médico / alertas)"]
+    end
+    S -- "insert_many (lotes 10k)" --> DB
+    API <--> DB
+    MID -.-> DB
+    DASH -- fetch --> API
 ```
 
-`[COMPLETAR: diagrama formal si el formato de entrega lo pide]`
+La generación de alertas ocurre **en la ingesta** (tanto en `seed.py` como en
+`POST /readings`): cuando una lectura supera el umbral definido por el médico
+del paciente, la alerta se inserta junto con la lectura y el snapshot embebido
+del paciente se actualiza atómicamente. Esto puede demostrarse en vivo:
+insertar una glucosa de 320 mg/dL vía `POST /readings` hace aparecer la
+alerta de inmediato en `GET /alerts/active`.
 
 ## 5. KPIs y latencias medidas
 
-`GET /metrics` agrega la colección `metrics`: promedio, p95 y conteo por
-endpoint. `[COMPLETAR: tabla con mediciones reales tras poblar y ejercitar la
-API — nota: la latencia contra Atlas incluye red; reportar también el header
-X-Response-Time-ms]`
+Cada request pasa por un middleware que registra su duración en la colección
+`metrics`; `GET /metrics` expone promedio, p95 y conteo por endpoint, y toda
+respuesta incluye el header `X-Response-Time-ms`. La medición formal se
+produce con `scripts/measure_api.py` (ejecutable vía `PROBAR_API.bat`), que
+ejercita cada patrón 30 veces con parámetros aleatorios realistas y genera
+`logs/tabla_latencias.md`.
+
+`[COMPLETAR: pegar aquí la tabla de logs/tabla_latencias.md tras la medición]`
 
 ## 6. Distribución de responsabilidades
 
