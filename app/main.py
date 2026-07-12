@@ -248,9 +248,34 @@ def metrics():
 
 # ── Auxiliares para el dashboard ─────────────────────────────────────────────
 @app.get("/patients", tags=["auxiliares"])
-def list_patients(q: Optional[str] = None, limit: int = Query(20, le=100)):
-    query = {"name": {"$regex": q, "$options": "i"}} if q else {}
-    return list(db.patients.find(query, {"name": 1, "status": 1, "riskLabel": 1}).limit(limit))
+def list_patients(
+    q: Optional[str] = None,
+    status: Optional[str] = None,
+    doctor_id: Optional[str] = Query(None, alias="doctorId"),
+    limit: int = Query(500, le=500),
+    skip: int = Query(0, ge=0),
+):
+    """Tabla de pacientes para el dashboard: hasta los 500 completos, con
+    filtros opcionales por nombre, estado y médico tratante."""
+    query = {}
+    if q:
+        query["name"] = {"$regex": q, "$options": "i"}
+    if status:
+        query["status"] = status
+    if doctor_id:
+        query["doctorId"] = doctor_id
+    projection = {"name": 1, "status": 1, "riskLevel": 1, "riskLabel": 1,
+                  "doctorId": 1, "conditions": 1, "lastReading": 1}
+    return list(db.patients.find(query, projection)
+                .sort("riskLevel", -1).skip(skip).limit(limit))
+
+
+@app.get("/patients/{patient_id}", tags=["auxiliares"])
+def get_patient(patient_id: str):
+    patient = db.patients.find_one({"_id": patient_id})
+    if not patient:
+        raise HTTPException(404, "Paciente no encontrado")
+    return patient
 
 
 @app.get("/doctors", tags=["auxiliares"])

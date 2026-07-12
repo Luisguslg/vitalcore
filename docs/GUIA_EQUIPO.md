@@ -12,7 +12,11 @@ suyo sin preguntar.
   `http://127.0.0.1:8000/docs` (ahí puedes probar cada uno con un clic).
 - **Las 4 vistas mínimas que pide el enunciado (sección 3.4):**
   1. *Dashboard de salud del paciente* → `GET /patients/{id}/readings?sensor=...&limit=N`
-     (cada lectura trae `isCritical`) + `GET /patients/{id}` vía `/patients?q=nombre`.
+     (cada lectura trae `isCritical`) + `GET /patients/{id}` (perfil completo).
+  - *Tabla general de pacientes* → `GET /patients` (devuelve los 500 con
+    riesgo, última lectura y condiciones, ordenados por riesgo; filtros
+    opcionales `?q=nombre`, `?status=active`, `?doctorId=D001`, paginación
+    con `?skip=&limit=`).
   2. *Vista del médico* (pacientes activos por riesgo) → `GET /doctors/{id}/patients`
      (ya viene ordenado por `riskLevel` descendente, con `lastReading` embebida).
   3. *Mapa de alertas activas* → `GET /alerts/active`.
