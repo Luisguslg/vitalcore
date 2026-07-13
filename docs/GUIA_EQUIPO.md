@@ -38,16 +38,17 @@ suyo sin preguntar.
 - Exportar a PDF para el aula virtual (VS Code + extensión Markdown PDF, o
   pegar en Word).
 
-## Para quien presenta o hace la LÁMINA
+## Para quien graba el VIDEO de presentación
 
-- Los 3 argumentos del motor y el CAP están en las secciones 1.2 y 1.3 del
-  documento técnico — de ahí sale todo el guion.
+- **Guion completo, minuto a minuto, en [guion_video.md](guion_video.md):**
+  qué pestañas abrir, qué mostrar en pantalla en cada escena y el texto
+  exacto a decir (~4:50 en total). Incluye la lista de preparación previa.
 - Números que lucen: 200.000 lecturas exactas, 6.336 alertas derivadas de
   umbrales médicos, consulta del médico resuelta con índice examinando 60
   documentos para devolver 60 (cero desperdicio), latencias en
   `logs/tabla_latencias.md`.
-- Demo en vivo sugerida: `INICIAR_API.bat` → `/docs` → `POST /readings` con
-  glucosa 320 → la alerta aparece en `GET /alerts/active` al instante.
+- El momento fuerte de la demo: `POST /readings` con glucosa 320 → la alerta
+  aparece en `GET /alerts/active` al instante (escena 5 del guion).
 
 ## Para quien gestiona la BITÁCORA DE IA
 
