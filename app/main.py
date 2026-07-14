@@ -18,7 +18,7 @@ from app.db import db
 app = FastAPI(
     title="VitalCore API",
     description="Arquitectura de datos en tiempo real para salud digital (MongoDB)",
-    version="1.0.0",
+    version="1.2.0",
 )
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
@@ -287,7 +287,7 @@ def list_doctors(specialty: Optional[str] = None):
 @app.get("/health", tags=["auxiliares"])
 def health():
     db.command("ping")
-    return {"status": "ok", "database": db.name}
+    return {"status": "ok", "database": db.name, "apiVersion": app.version}
 
 
 def _clean(doc: dict) -> dict:
