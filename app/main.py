@@ -18,7 +18,7 @@ from app.db import db
 app = FastAPI(
     title="VitalCore API",
     description="Arquitectura de datos en tiempo real para salud digital (MongoDB)",
-    version="1.2.0",
+    version="1.2.1",
 )
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
@@ -102,7 +102,8 @@ def doctor_patients(doctor_id: str):
         raise HTTPException(404, "Médico no encontrado")
     patients = list(db.patients.find(
         {"doctorId": doctor_id, "status": "active"},
-        {"name": 1, "conditions": 1, "lastReading": 1, "riskLevel": 1, "riskLabel": 1},
+        {"name": 1, "doctorId": 1, "conditions": 1, "lastReading": 1,
+         "riskLevel": 1, "riskLabel": 1},
     ).sort("riskLevel", -1))
     return {"doctor": doctor, "activePatients": len(patients), "patients": patients}
 
