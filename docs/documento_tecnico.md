@@ -1,8 +1,5 @@
 # Documento Técnico — VitalCore (Proyecto 02, NoSQL Implementation Challenge)
 
-> **Borrador de trabajo.** Las secciones marcadas `[COMPLETAR]` requieren
-> aporte del equipo (nombres, capturas, mediciones reales contra Atlas).
-
 ## 1. Selección del motor NoSQL
 
 ### 1.1 Patrones de acceso identificados (el diseño parte de aquí)
@@ -185,7 +182,7 @@ flowchart LR
     subgraph Consulta
         API["FastAPI<br/>5 patrones + POST /readings"]
         MID["middleware de latencia<br/>→ colección metrics"]
-        DASH["Dashboard web<br/>(vistas paciente / médico / alertas)"]
+        DASH["Dashboard (Power BI)<br/>(pacientes / doctores / KPIs de la API)"]
     end
     S -- "insert_many (lotes 10k)" --> DB
     API <--> DB
@@ -240,9 +237,9 @@ snapshot del paciente.
 
 | Integrante | Responsabilidad |
 |---|---|
-| Luis G. | Base de datos (modelado, índices, ingesta) y API REST |
-| `[COMPLETAR]` | Dashboard / visualización |
-| `[COMPLETAR]` | Documento técnico |
-| `[COMPLETAR]` | Bitácora de IA |
-| `[COMPLETAR]` | Datos de prueba / validación médica |
-| `[COMPLETAR]` | Repositorio y despliegue |
+| Luis Perdomo | Base de datos y backend: modelado NoSQL, indexación, pipeline de ingesta (`seed.py`) y API REST en FastAPI |
+| Melanie Gamboa | Interfaz de visualización: dashboard en Power BI y vistas de riesgo, alertas y KPIs |
+| Manuel Martínez | Infraestructura: configuración del clúster en MongoDB Atlas y automatización de pruebas |
+| David Crespo | Documento técnico: redacción, análisis del teorema CAP y marco teórico |
+| Daniela Estrada | Calidad de datos y auditoría de IA: calibración semántica de datos de salud y bitácora de prompts |
+| Mariangel Goncalves | Aseguramiento de calidad: validación de planes de ejecución (`explain`) y pruebas de la API |

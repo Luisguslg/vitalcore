@@ -65,28 +65,35 @@ patrón 30 veces y genera `logs/tabla_latencias.md`).
 IDs de ejemplo: pacientes `P0001`…`P0500`, médicos `D001`…`D050`.
 Toda respuesta incluye el header `X-Response-Time-ms`.
 
-## Guía rápida para el equipo (levantar la API en tu máquina)
+## Inicio rápido (cualquier máquina Windows)
 
 1. Instala [Python 3.10+](https://www.python.org/downloads/) marcando
    **"Add Python to PATH"** durante la instalación.
-2. Descarga el proyecto: botón verde **Code → Download ZIP** y descomprime
-   (o `git clone https://github.com/Luisguslg/vitalcore.git`).
-3. Crea un archivo llamado `.env` dentro de la carpeta del proyecto con las
-   credenciales de conexión (pídelas por privado; usa `.env.example` como
-   plantilla). **Nunca subas el `.env` al repositorio.**
-4. Doble clic en **`INICIAR_API.bat`** — la primera vez instala todo solo
-   (1–2 min). Cuando diga que está corriendo, abre
-   http://127.0.0.1:8000/docs para probar los endpoints.
-5. La base de datos ya está poblada en Atlas: no hay que cargar nada.
-   El dashboard debe consumir la API en `http://127.0.0.1:8000`
-   (CORS ya está habilitado para cualquier origen).
+2. Clona o descarga el repositorio
+   (`git clone https://github.com/Luisguslg/vitalcore.git`).
+3. Crea el archivo `.env` en la raíz del proyecto con las credenciales de
+   conexión a Atlas, usando `.env.example` como plantilla.
+4. Doble clic en **`INICIAR_API.bat`** — la primera vez instala las
+   dependencias (1–2 min) y luego levanta el servidor. La documentación
+   interactiva queda en http://127.0.0.1:8000/docs.
+5. La base de datos ya está poblada en Atlas; para regenerarla desde cero,
+   ejecutar `CARGAR_DATOS.bat`.
+
+## Interfaz de visualización
+
+El dashboard del proyecto está desarrollado en **Power BI**
+(`vitalcore_dashboard.pbix`, entregado junto al informe) y consume esta API:
+vistas de pacientes por nivel de riesgo, doctores por especialidad y KPIs de
+rendimiento por endpoint. La API expone CORS abierto, por lo que cualquier
+otro cliente de visualización puede consumirla directamente.
 
 ## Estructura
 
 ```
 vitalcore/
 ├── app/            # API FastAPI (main.py) y conexión (db.py)
-├── scripts/        # setup_db.py (colecciones + índices), seed.py (ingesta)
-├── docs/           # documento técnico y bitácora de IA
-└── dashboard/      # interfaz de visualización (pendiente)
+├── scripts/        # setup_db.py (índices), seed.py (ingesta), verify.py,
+│                   # measure_api.py (medición de KPIs)
+├── docs/           # documento técnico, bitácora de IA y diccionario de datos
+└── logs/           # evidencias: verificación de carga y tabla de latencias
 ```
