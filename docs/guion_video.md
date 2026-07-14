@@ -15,7 +15,8 @@ graba) y **[VOZ]** (el texto a decir, listo para leer). Tiempo total: ~4:50.
    3. `docs/diccionario_datos.md` en GitHub
    4. `logs/verificacion.log` en GitHub
    5. http://127.0.0.1:8000/docs (Swagger de la API)
-   6. El dashboard corriendo
+   6. El archivo `vitalcore_dashboard.pbix` abierto en Power BI Desktop
+      (recomendado: pulsar "Actualizar" con la API corriendo antes de grabar)
    7. `logs/tabla_latencias.md` en GitHub
    8. `docs/bitacora_ia.md` en GitHub
 3. Hablar a ritmo normal; si una escena se pasa 5–10 segundos no importa,
@@ -109,10 +110,12 @@ posterior a la carga confirma todos los volúmenes del enunciado.»
 **[PANTALLA]** Pestaña 5: Swagger en http://127.0.0.1:8000/docs.
 1. Ejecutar `GET /doctors/D001/patients` → respuesta con pacientes ordenados
    por riesgo, señalar `lastReading` dentro del primer paciente.
-2. Ejecutar `POST /readings` con el body:
+2. Ejecutar `GET /patients/P0001/readings?sensor=glucose&limit=10` →
+   señalar `value`, `timestamp` e `isCritical` en las lecturas.
+3. Ejecutar `POST /readings` con el body:
    `{"patientId": "P0007", "sensorType": "glucose", "value": 320}` →
    señalar `"isCritical": true` y el `alertId`.
-3. Ejecutar `GET /alerts/active` → la alerta recién creada aparece de
+4. Ejecutar `GET /alerts/active` → la alerta recién creada aparece de
    primera.
 
 **[VOZ]**
@@ -120,28 +123,36 @@ posterior a la carga confirma todos los volúmenes del enunciado.»
 documentación interactiva generada automáticamente. Primero, la vista del
 médico: pido los pacientes activos del doctor D001 y llegan ordenados por
 nivel de riesgo, cada uno con su última lectura ya embebida — esta es la
-consulta que el índice resuelve sin tocar la colección de telemetría. Ahora
-el patrón de alertas de extremo a extremo: inserto una lectura nueva, una
-glucosa de trescientos veinte miligramos por decilitro para este paciente. La
-respuesta confirma que superó el umbral definido por su médico y que se creó
-la alerta en la misma operación. Y si consulto las alertas activas… ahí está,
-de primera. Ese ciclo completo — lectura, evaluación de umbral, alerta
-visible — tarda menos de trescientos milisegundos incluyendo el viaje a la
-nube.»
+consulta que el índice resuelve sin tocar la colección de telemetría. Segundo,
+el dashboard de salud del paciente: las últimas lecturas de glucosa de un
+paciente, cada una con su marca temporal y su indicador de criticidad, en una
+sola consulta sobre la colección de series de tiempo. Y ahora el patrón de
+alertas de extremo a extremo: inserto una lectura nueva, una glucosa de
+trescientos veinte miligramos por decilitro para este paciente. La respuesta
+confirma que superó el umbral definido por su médico y que se creó la alerta
+en la misma operación. Y si consulto las alertas activas… ahí está, de
+primera. Ese ciclo completo — lectura, evaluación de umbral, alerta visible —
+tarda menos de trescientos milisegundos incluyendo el viaje a la nube.»
 
-## Escena 6 — Dashboard (3:50 – 4:20)
+## Escena 6 — Dashboard en Power BI (3:50 – 4:20)
 
-**[PANTALLA]** Pestaña 6: el dashboard. Recorrer las vistas en este orden:
-tabla de pacientes por riesgo → detalle de un paciente con su gráfico →
-alertas activas → tiempos de respuesta.
+**[PANTALLA]** Pestaña 6: Power BI Desktop. Recorrer las tres páginas en
+orden: **Pacientes** (tarjetas, torta por nivel de riesgo, alertas por
+sensor) → **Doctores** (especialidades, cantidad de pacientes por doctor) →
+**API** (tarjetas de latencia y tabla por endpoint). No hacer zoom en la
+tarjeta "Total alertas activas" ni en la fila "Total" de la tabla de la
+página API.
 
-**[VOZ]** *(ajustar a lo que muestre el dashboard final)*
-«Sobre esa API construimos la interfaz de visualización con las cuatro vistas
-operativas del enunciado: la tabla de pacientes con sus indicadores de riesgo
-por color, el dashboard de salud de cada paciente con sus últimas lecturas y
-sus umbrales, el mapa de alertas activas sin resolver que se refresca
-automáticamente, y los tiempos de respuesta por consulta medidos por el
-propio sistema.»
+**[VOZ]**
+«Sobre esa API construimos el panel de visualización en Power BI, con tres
+vistas operativas: la de pacientes, con la distribución de los quinientos
+pacientes por nivel de riesgo y la actividad de alertas por tipo de sensor;
+la de doctores, con las seis especialidades, la carga de pacientes por médico
+y las alertas por especialidad — concentradas en medicina general porque la
+alerta siempre notifica al médico tratante del paciente; y la vista de
+rendimiento de la API, donde se visualiza el KPI de tiempo promedio de
+respuesta por consulta que exige el proyecto, alimentado por la colección de
+métricas que el propio sistema registra en cada petición.»
 
 ## Escena 7 — KPIs medidos y bitácora de IA (4:20 – 4:50)
 
